@@ -4,6 +4,11 @@ A small Windows app that checks on its own whether any open public lobbies have 
 on The Bazaar (PTR) server and notifies you about it.
 No need to launch the game and refresh the list by hand anymore.
 
+## Download
+
+Ready-to-run build (nothing to install): **[BazaarTracker-portable.zip from the latest release](https://github.com/jellybellybean/BazaarTracker/releases/latest)**.
+Unzip it, start Steam, run `BazaarTracker.exe`.
+
 ## What it shows
 
 - the list of public lobbies: name, host, taken/max slots, code, time left until it closes;
@@ -56,7 +61,8 @@ The account is not hard-coded: on every start the app signs in with whichever St
 currently running on the computer. To give the program to a friend:
 
 1. Copy the whole `dist-portable\` folder (`BazaarTracker.exe`, `steam_api64.dll`, `steam_appid.txt`),
-   or send the ready-made `BazaarTracker-portable.zip` from the repository root.
+   or send the ready-made `BazaarTracker-portable.zip` from the
+   [releases page](https://github.com/jellybellybean/BazaarTracker/releases/latest).
 2. The friend runs the exe on their machine. On first launch the app asks Steam for a ticket
    and signs in under their account.
 
