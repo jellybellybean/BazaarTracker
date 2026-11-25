@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace BazaarTracker;
 
 /// <summary>
-/// Токены доступа и профиль, сохранённые между запусками.
-/// Файл лежит только в профиле текущего пользователя (%APPDATA%\BazaarTracker\session.json).
+/// Access tokens and profile persisted between runs.
+/// The file lives only in the current user's profile (%APPDATA%\BazaarTracker\session.json).
 /// </summary>
 public sealed class SessionData
 {
@@ -18,7 +18,7 @@ public sealed class SessionData
     [JsonPropertyName("accessTokenExpiresAtUtc")]
     public DateTimeOffset? AccessTokenExpiresAtUtc { get; set; }
 
-    /// <summary>SteamID64, под которым получены токены. Нужен, чтобы не перепутать аккаунты.</summary>
+    /// <summary>SteamID64 the tokens were issued for. Used to avoid mixing up accounts.</summary>
     [JsonPropertyName("steamId")]
     public string? SteamId { get; set; }
 
@@ -48,7 +48,7 @@ public sealed class SessionData
         }
         catch
         {
-            // игнорируем повреждённый кэш
+            // ignore a corrupted cache
         }
 
         return new SessionData();
@@ -64,7 +64,7 @@ public sealed class SessionData
         }
         catch
         {
-            // не критично
+            // not critical
         }
     }
 

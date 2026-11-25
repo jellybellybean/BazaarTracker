@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace BazaarTracker;
 
-/// <summary>Элемент ответа GET /lobbies (TournamentPublicLobbyDto в клиенте).</summary>
+/// <summary>Item of the GET /lobbies response (TournamentPublicLobbyDto in the client).</summary>
 public sealed class LobbyDto
 {
     [JsonPropertyName("lobbyId")]
@@ -34,7 +34,7 @@ public sealed class LobbyDto
 
     [JsonIgnore]
     public string DisplayName =>
-        string.IsNullOrWhiteSpace(Name) ? "(без названия)" : Name!;
+        string.IsNullOrWhiteSpace(Name) ? "(unnamed)" : Name!;
 
     [JsonIgnore]
     public string DisplayCode =>
@@ -47,7 +47,7 @@ public sealed class LobbyDto
     public string PlayersText => $"{JoinedCount}/{MaxPlayers}";
 }
 
-/// <summary>Ответ GET /queue.</summary>
+/// <summary>GET /queue response.</summary>
 public sealed class QueueStatusDto
 {
     [JsonPropertyName("state")]
@@ -60,7 +60,7 @@ public sealed class QueueStatusDto
     public int MaxPlayers { get; set; }
 }
 
-/// <summary>Ответ GET /api/PlayerProfiles/me.</summary>
+/// <summary>GET /api/PlayerProfiles/me response.</summary>
 public sealed class PlayerProfileDto
 {
     [JsonPropertyName("accountId")]

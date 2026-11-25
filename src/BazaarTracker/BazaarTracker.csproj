@@ -12,7 +12,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>1.0.0</Version>
     <Product>BazaarTracker</Product>
-    <Description>The Bazaar — отслеживание открытых лобби на PTR-сервере</Description>
+    <Description>The Bazaar - open lobby tracker for the PTR server</Description>
   </PropertyGroup>
 
   <ItemGroup>

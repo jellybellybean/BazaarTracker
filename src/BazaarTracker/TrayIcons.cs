@@ -5,28 +5,28 @@ using System.Runtime.InteropServices;
 
 namespace BazaarTracker;
 
-/// <summary>Что показывает иконка в трее.</summary>
+/// <summary>What the tray icon shows.</summary>
 public enum TrayState
 {
-    /// <summary>Идёт подключение (серый кружок).</summary>
+    /// <summary>Connecting (gray dot).</summary>
     Connecting,
 
-    /// <summary>Нет связи или входа (красный «!»).</summary>
+    /// <summary>No connection or sign-in (red "!").</summary>
     Error,
 
-    /// <summary>Лобби и очередь пусты (тёмный кружок «0»).</summary>
+    /// <summary>Lobbies and queue are empty (dark dot "0").</summary>
     Idle,
 
-    /// <summary>В очереди кто-то есть (янтарный, число игроков).</summary>
+    /// <summary>Someone is in the queue (amber, player count).</summary>
     Queue,
 
-    /// <summary>Есть открытые лобби со свободными местами (зелёный, число лобби).</summary>
+    /// <summary>Open lobbies with free slots (green, lobby count).</summary>
     Lobby
 }
 
 /// <summary>
-/// Рисует иконку для трея на лету: цветной кружок с числом. Для состояний «Queue» и «Lobby»
-/// кадры анимации — расходящееся кольцо и лёгкое «дыхание» цвета.
+/// Draws the tray icon on the fly: a colored dot with a number. For the "Queue" and "Lobby" states
+/// animation frames are an expanding ring and a slight color "breathing".
 /// </summary>
 internal static class TrayIcons
 {
@@ -35,7 +35,7 @@ internal static class TrayIcons
 
     public static bool IsAlert(TrayState state) => state is TrayState.Queue or TrayState.Lobby;
 
-    /// <param name="phase">Фаза анимации 0..1 (учитывается только при <paramref name="animate"/>).</param>
+    /// <param name="phase">Animation phase 0..1 (used only when <paramref name="animate"/> is set).</param>
     public static Icon Create(TrayState state, int count, double phase, bool animate)
     {
         var size = Math.Max(16, SystemInformation.SmallIconSize.Width);
@@ -60,7 +60,7 @@ internal static class TrayIcons
                 using var ringPen = new Pen(Color.FromArgb(alpha, baseColor), Math.Max(1.5f, size / 10f));
                 g.DrawEllipse(ringPen, center - ringRadius, center - ringRadius, ringRadius * 2, ringRadius * 2);
 
-                // в начале каждого «удара» кружок чуть светлее
+                // at the start of each "beat" the dot is slightly lighter
                 baseColor = Blend(baseColor, Color.White, 0.45f * (1 - t));
             }
 
@@ -82,7 +82,7 @@ internal static class TrayIcons
                     Alignment = StringAlignment.Center,
                     LineAlignment = StringAlignment.Center
                 };
-                // небольшой сдвиг вниз: у Segoe UI центр строки визуально выше центра цифр
+                // small downward shift: in Segoe UI the line center sits visually above the digit center
                 g.DrawString(label, font, textBrush, new RectangleF(0, size * 0.04f, size, size), format);
             }
         }
@@ -103,7 +103,7 @@ internal static class TrayIcons
     {
         TrayState.Error => "!",
         TrayState.Connecting => string.Empty,
-        // на 16 пикселях «9+» не читается, поэтому для больших чисел просто «+»
+        // "9+" is unreadable at 16 pixels, so large numbers just show "+"
         _ => count > 9 ? "+" : count.ToString()
     };
 

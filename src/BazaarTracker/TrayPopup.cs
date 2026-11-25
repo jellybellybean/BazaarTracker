@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 namespace BazaarTracker;
 
 /// <summary>
-/// Небольшое всплывающее окно-«пузырь» у трея: выезжает в углу экрана, не забирает фокус,
-/// висит несколько секунд (пока на нём мышь — не исчезает), клик выполняет действие.
+/// A small popup "bubble" near the tray: slides in at the screen corner, doesn't steal focus,
+/// stays for a few seconds (doesn't disappear while the mouse is over it), a click runs the action.
 /// </summary>
 public sealed class TrayPopup : Form
 {
@@ -84,7 +84,7 @@ public sealed class TrayPopup : Form
 
         ClientSize = new Size(PopupWidth, y + 12);
 
-        // клик по любому месту (кроме «×») выполняет действие
+        // a click anywhere (except "×") runs the action
         Click += OnBodyClick;
         foreach (Control child in Controls)
         {
@@ -113,7 +113,7 @@ public sealed class TrayPopup : Form
     {
         base.OnHandleCreated(e);
 
-        // Windows 11: системные скруглённые углы; на Windows 10 — обычная область с радиусом
+        // Windows 11: system rounded corners; on Windows 10 a regular region with a radius
         try
         {
             var preference = DwmRound;
@@ -121,7 +121,7 @@ public sealed class TrayPopup : Form
         }
         catch
         {
-            // нет dwmapi — остаётся прямоугольник
+            // no dwmapi - stays a rectangle
         }
 
         if (Environment.OSVersion.Version.Build < 22000)
@@ -131,7 +131,7 @@ public sealed class TrayPopup : Form
         }
     }
 
-    /// <summary>Показывает окно у трея (угол рабочей области, рядом с панелью задач) и запускает анимацию.</summary>
+    /// <summary>Shows the window near the tray (work-area corner, next to the taskbar) and starts the animation.</summary>
     public void ShowAtTray()
     {
         var screen = Screen.PrimaryScreen ?? Screen.AllScreens[0];
@@ -153,7 +153,7 @@ public sealed class TrayPopup : Form
         _timer.Start();
     }
 
-    /// <summary>Плавно скрывает окно.</summary>
+    /// <summary>Fades the window out.</summary>
     public void Dismiss()
     {
         if (_phase == Phase.Out || IsDisposed)
@@ -173,7 +173,7 @@ public sealed class TrayPopup : Form
         }
         catch
         {
-            // действие не должно ронять приложение
+            // the action must not crash the app
         }
 
         Dismiss();
@@ -203,7 +203,7 @@ public sealed class TrayPopup : Form
             case Phase.Hold:
                 if (Bounds.Contains(Cursor.Position))
                 {
-                    _phaseStartedAt = now; // мышь над окном — не скрываем
+                    _phaseStartedAt = now; // mouse over the window - don't hide
                 }
                 else if (elapsed >= _holdMs)
                 {

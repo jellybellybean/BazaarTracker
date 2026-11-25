@@ -26,7 +26,7 @@ public sealed record HttpResult<T>(int StatusCode, T? Data, string? Error)
 }
 
 /// <summary>
-/// Обёртка над двумя HTTP-API игры: temponet (логин, профиль) и tournament (лобби, очередь).
+/// Wrapper over the game's two HTTP APIs: temponet (login, profile) and tournament (lobbies, queue).
 /// </summary>
 public sealed class BazaarApi : IDisposable
 {
@@ -146,15 +146,15 @@ public sealed class BazaarApi : IDisposable
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            return new HttpResult<T>(0, default, "Запрос отменён.");
+            return new HttpResult<T>(0, default, "Request cancelled.");
         }
         catch (OperationCanceledException)
         {
-            return new HttpResult<T>(0, default, "Сервер не ответил за 20 секунд.");
+            return new HttpResult<T>(0, default, "Server did not respond within 20 seconds.");
         }
         catch (HttpRequestException ex)
         {
-            return new HttpResult<T>(0, default, "Сеть: " + ex.Message);
+            return new HttpResult<T>(0, default, "Network: " + ex.Message);
         }
     }
 

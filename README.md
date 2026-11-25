@@ -1,154 +1,158 @@
 # BazaarTracker
 
-Небольшое приложение для Windows, которое само проверяет, появились ли на сервере
-The Bazaar (PTR) открытые публичные лобби, и сообщает об этом уведомлением.
-Ходить в игру и вручную обновлять список больше не нужно.
+A small Windows app that checks on its own whether any open public lobbies have appeared
+on The Bazaar (PTR) server and notifies you about it.
+No need to launch the game and refresh the list by hand anymore.
 
-## Что показывает
+## What it shows
 
-- список публичных лобби: название, хост, занятые/максимальные места, код, сколько осталось до закрытия;
-- сколько игроков сейчас в очереди на автоподбор (`/queue`);
-- всплывающее уведомление и звук, когда появляется новое лобби;
-- уведомление, когда в очереди на автоподбор становится больше игроков, чем при прошлой проверке
-  (отключается в настройках: «Показывать уведомление, когда в очереди появляются игроки»);
-- журнал запросов (сколько заняло обновление, какие были ошибки).
+- the list of public lobbies: name, host, taken/max slots, code, time left until it closes;
+- how many players are currently in the matchmaking queue (`/queue`);
+- a popup notification and a sound when a new lobby appears;
+- a notification when the matchmaking queue has more players than at the previous check
+  (can be turned off in settings: "Show a notification when players appear in the queue");
+- a request log (how long a refresh took, what errors occurred).
 
-### Иконка в трее
+### Tray icon
 
-Иконка рисуется приложением и показывает состояние, не открывая окно:
+The icon is drawn by the app and shows the current state without opening the window:
 
-| Вид | Значение |
+| Look | Meaning |
 | --- | --- |
-| зелёный кружок с числом, пульсирует | есть открытые лобби со свободными местами (число — сколько) |
-| янтарный кружок с числом, пульсирует | лобби нет, но в очереди есть игроки (число — сколько) |
-| тёмный кружок «0» | лобби и очередь пусты |
-| красный «!» | нет входа в аккаунт или связи с сервером |
-| серый кружок | подключение |
+| green dot with a number, pulsing | there are open lobbies with free slots (the number is how many) |
+| amber dot with a number, pulsing | no lobbies, but there are players in the queue (the number is how many) |
+| dark dot "0" | lobbies and queue are empty |
+| red "!" | not signed in or no connection to the server |
+| gray dot | connecting |
 
-Число «+» означает больше девяти. В подсказке при наведении — лобби и очередь текстом.
-Анимацию можно отключить в настройках.
+"+" means more than nine. The hover tooltip shows lobbies and queue as text.
+The animation can be turned off in settings.
 
-### Всплывающее окно
+### Popup window
 
-Вместо системного уведомления Windows приложение показывает своё небольшое окно у трея
-(в углу рядом с панелью задач): оно не забирает фокус, висит около 10 секунд (пока мышь над ним —
-не исчезает) и плавно пропадает. Клик по нему копирует код лобби в буфер обмена и, если игра не запущена, запускает её через Steam
-(`steam://rungameid/1617400`, ветка — та, что выбрана в Steam, то есть PTR). Если игра уже идёт или запуск
-отключён в настройках, клик только копирует код (а без кода — открывает окно приложения); «×» закрывает. Поверх игры оно видно в оконном и безрамочном режимах,
-поверх эксклюзивного полноэкранного — нет. В настройках можно вернуться к обычному уведомлению Windows.
+Instead of a system Windows notification, the app shows its own small window near the tray
+(in the corner next to the taskbar). It doesn't steal focus, stays for about 10 seconds
+(it won't disappear while the mouse is over it) and fades out. Clicking it copies the lobby code
+to the clipboard and, if the game isn't running, launches it through Steam
+(`steam://rungameid/1617400`, using the branch selected in Steam, i.e. PTR). If the game is already
+running or launching is disabled in settings, a click only copies the code (and without a code it
+opens the app window); "×" closes the popup. It is visible over the game in windowed and borderless
+modes, but not over exclusive fullscreen. You can switch back to a regular Windows notification in settings.
 
-Двойной клик по строке копирует код лобби в буфер обмена — его можно вставить в игру.
+Double-clicking a row copies the lobby code to the clipboard so you can paste it into the game.
 
-## Что нужно
+## Requirements
 
 - Windows 10/11 x64.
-- Запущенный Steam и аккаунт, на котором куплена The Bazaar (AppID 1617400).
-- Любая из сборок: `dist\` (нужен .NET 10 Desktop Runtime) или `dist-portable\`
-  (self-contained, ставить ничего не надо).
+- Steam running, with an account that owns The Bazaar (AppID 1617400).
+- Either build: `dist\` (requires the .NET 10 Desktop Runtime) or `dist-portable\`
+  (self-contained, nothing to install).
 
-Игра при этом может быть закрыта: авторизация идёт через Steam, а не через клиент игры.
+The game itself may be closed: authorization goes through Steam, not through the game client.
 
-## Другой аккаунт и передача другу
+## Another account and sharing with a friend
 
-Аккаунт нигде не зашит: приложение при каждом запуске входит тем Steam-аккаунтом,
-который сейчас запущен на компьютере. Чтобы отдать программу другу:
+The account is not hard-coded: on every start the app signs in with whichever Steam account is
+currently running on the computer. To give the program to a friend:
 
-1. Скопируйте папку `dist-portable\` целиком (`BazaarTracker.exe`, `steam_api64.dll`, `steam_appid.txt`)
-   — или отправьте готовый `BazaarTracker-portable.zip` из корня.
-2. Друг запускает exe у себя. При первом запуске приложение само попросит у Steam тикет
-   и войдёт под его аккаунтом.
+1. Copy the whole `dist-portable\` folder (`BazaarTracker.exe`, `steam_api64.dll`, `steam_appid.txt`),
+   or send the ready-made `BazaarTracker-portable.zip` from the repository root.
+2. The friend runs the exe on their machine. On first launch the app asks Steam for a ticket
+   and signs in under their account.
 
-Что при этом стоит знать:
+Things worth knowing:
 
-- токены хранятся только в профиле Windows-пользователя (`%APPDATA%\BazaarTracker\session.json`),
-  рядом с exe никаких учётных данных нет — при копировании папки они не уезжают;
-- сохранённая сессия привязана к SteamID64. Если в Steam войти под другим аккаунтом,
-  приложение это заметит и переоформит сессию автоматически;
-- вручную переключиться можно через меню значка в трее → «Сменить аккаунт»;
-- у друга на аккаунте должна быть куплена The Bazaar — без этого Steam не выдаст тикет
-  (приложение покажет ошибку входа, а не будет молча работать под чужим аккаунтом).
+- tokens are stored only in the Windows user profile (`%APPDATA%\BazaarTracker\session.json`);
+  there are no credentials next to the exe, so they don't travel when you copy the folder;
+- the saved session is bound to a SteamID64. If you sign in to Steam under another account,
+  the app notices and renews the session automatically;
+- you can switch manually via the tray icon menu → "Switch account";
+- the friend's account must own The Bazaar, otherwise Steam won't issue a ticket
+  (the app will show a sign-in error rather than silently working under someone else's account).
 
-## Сборка
+## Building
 
 ```powershell
-# из корня репозитория
+# from the repository root
 dotnet build .\src\BazaarTracker\BazaarTracker.csproj -c Release
 
-# готовый набор в dist\ (нужен установленный .NET 10)
+# ready-made set in dist\ (requires .NET 10 installed)
 .\build.ps1
 
-# самодостаточная сборка в dist-portable\ (ничего ставить не нужно)
+# self-contained build in dist-portable\ (nothing to install)
 .\build.ps1 -SelfContained
 ```
 
-Запуск: `dist\BazaarTracker.exe` (или `src\BazaarTracker\bin\Release\net10.0-windows\BazaarTracker.exe`).
+Run: `dist\BazaarTracker.exe` (or `src\BazaarTracker\bin\Release\net10.0-windows\BazaarTracker.exe`).
 
-## Как это работает
+## How it works
 
-Клиент The Bazaar ходит в два HTTP-API:
+The Bazaar client talks to two HTTP APIs:
 
-| Что | Адрес |
+| What | Address |
 | --- | --- |
-| аккаунт, вход | `https://temponet-core-ptr-app-srvce.azurewebsites.net` |
-| лобби, очередь | `https://tournament-ptr-app.orangestone-41b95ee4.westus2.azurecontainerapps.io` |
+| account, sign-in | `https://temponet-core-ptr-app-srvce.azurewebsites.net` |
+| lobbies, queue | `https://tournament-ptr-app.orangestone-41b95ee4.westus2.azurecontainerapps.io` |
 
-Схема:
+Flow:
 
-1. Приложение инициализирует Steamworks с AppID игры и просит у Steam тикет для веб-API
-   (`ISteamUser::GetAuthTicketForWebApi`) — ровно так же, как это делает сама игра.
-2. `POST /api/auth/login/silent` с тикетом → JWT (`accessToken`) и `refreshToken`.
-3. `GET /api/PlayerProfiles/me` → `accountId` и ник (они нужны в заголовках `aid`/`uid`).
-4. Раз в N секунд: `GET /lobbies?limit=50` и `GET /queue` с заголовком `Authorization: Bearer …`.
-5. Когда access-токен истекает, он обновляется через `POST /api/auth/refreshtokens`;
-   если не вышло — приложение заново берёт Steam-тикет.
+1. The app initializes Steamworks with the game's AppID and asks Steam for a web API ticket
+   (`ISteamUser::GetAuthTicketForWebApi`), exactly as the game itself does.
+2. `POST /api/auth/login/silent` with the ticket → JWT (`accessToken`) and `refreshToken`.
+3. `GET /api/PlayerProfiles/me` → `accountId` and nickname (needed for the `aid`/`uid` headers).
+4. Every N seconds: `GET /lobbies?limit=50` and `GET /queue` with an `Authorization: Bearer …` header.
+5. When the access token expires, it is renewed via `POST /api/auth/refreshtokens`;
+   if that fails, the app gets a new Steam ticket.
 
-Пароль от аккаунта нигде не спрашивается и не хранится: в `%APPDATA%\BazaarTracker\session.json`
-лежат только выданные сервером токены, в `settings.json` — интервал опроса, адреса API и флаги уведомлений.
-Оба файла можно удалить в любой момент — приложение просто попросит Steam-тикет заново.
+The account password is never asked for or stored: `%APPDATA%\BazaarTracker\session.json`
+holds only the tokens issued by the server, and `settings.json` holds the polling interval,
+API addresses and notification flags. Both files can be deleted at any time; the app will
+simply ask Steam for a ticket again.
 
-## Настройки
+## Settings
 
-Кнопка «Настройки»:
+The "Settings" button:
 
-- интервал проверки (5–300 секунд, по умолчанию 15);
-- уведомления и звук;
-- сворачивать в трей вместо закрытия;
-- запускать при входе в Windows и/или стартовать сразу свёрнутым в трей;
-- адреса API (на случай, если Tempo поменяет домены или понадобится prod-сервер).
+- check interval (5–300 seconds, default 15);
+- notifications and sound;
+- minimize to tray instead of closing;
+- start with Windows and/or start minimized to the tray;
+- API addresses (in case Tempo changes the domains or you need a prod server).
 
-Горячие клавиши: F5 — проверить сейчас, Esc — свернуть в трей.
-Флаг `--tray` при запуске сразу прячет окно в трей (его использует автозапуск).
+Hotkeys: F5 — check now, Esc — minimize to tray.
+The `--tray` flag hides the window to the tray right at startup (used by autostart).
 
-## Диагностика
+## Diagnostics
 
 ```powershell
 .\BazaarTracker.exe --selftest
 ```
 
-Проверяет вход, делает один запрос лобби и печатает результат в консоль — удобно, если
-«ничего не находит». Логи приложения пишутся в окно «Журнал».
+Checks sign-in, makes one lobby request and prints the result to the console. Handy if it
+"finds nothing". The app's logs are shown in the "Log" window.
 
 ```powershell
 .\BazaarTracker.exe --selftest-switch
 ```
 
-То же самое плюс проверка смены аккаунта (сброс сессии и повторный вход через Steam).
+The same, plus an account switch check (session reset and sign-in through Steam again).
 
-## Состав
+## Layout
 
 ```
-src/BazaarTracker/     исходники (WinForms, .NET 10)
-vendor/                com.rlabrecque.steamworks.net.dll и steam_api64.dll из установленной игры
-dist/                  собранный BazaarTracker.exe (рядом должны лежать steam_api64.dll и steam_appid.txt)
-dist-portable/         то же, но со встроенным рантаймом .NET — можно передавать другу
-build.ps1              сборка dist\ (или dist-portable\ с -SelfContained)
+src/BazaarTracker/     source code (WinForms, .NET 10)
+vendor/                com.rlabrecque.steamworks.net.dll and steam_api64.dll from the installed game (not in the repo)
+dist/                  built BazaarTracker.exe (steam_api64.dll and steam_appid.txt must sit next to it)
+dist-portable/         the same, with the .NET runtime bundled, so it can be passed to a friend
+build.ps1              builds dist\ (or dist-portable\ with -SelfContained)
 ```
 
-Файлы в `vendor/` — из клиента The Bazaar (`TheBazaar_Data/Managed` и `TheBazaar_Data/Plugins/x86_64`).
-После крупного обновления игры их можно перекопировать оттуда же.
+The files in `vendor/` come from the The Bazaar client (`TheBazaar_Data/Managed` and
+`TheBazaar_Data/Plugins/x86_64`). They are not included in this repository; copy them from your own
+game install into `vendor/` before building. After a major game update you can copy them again from the same place.
 
-## Ограничения
+## Limitations
 
-- Это не автоматический вход в лобби: приложение только смотрит список.
-- Адреса API зашиты по состоянию на клиент `1.0.13122-ptr`; при их смене поправьте настройки.
-- Сервер сам решает, какие лобби показывать; приватные лобби в списке не появляются.
+- This is not an automatic lobby join: the app only watches the list.
+- The API addresses are hard-coded as of client `1.0.13122-ptr`; if they change, fix them in settings.
+- The server decides which lobbies to show; private lobbies don't appear in the list.

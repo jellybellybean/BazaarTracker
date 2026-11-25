@@ -18,7 +18,7 @@ internal static class Program
         if (!isFirstInstance)
         {
             MessageBox.Show(
-                "BazaarTracker уже запущен — окно можно открыть из значка в трее.",
+                "BazaarTracker is already running - you can open its window from the tray icon.",
                 "BazaarTracker",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);

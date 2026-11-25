@@ -7,7 +7,7 @@ public sealed record PollResult(
     string? QueueError);
 
 /// <summary>
-/// Авторизация (Steam-тикет → JWT → refresh-токен) и опрос сервера лобби.
+/// Authorization (Steam ticket → JWT → refresh token) and lobby server polling.
 /// </summary>
 public sealed class TrackerService : IDisposable
 {
@@ -41,17 +41,17 @@ public sealed class TrackerService : IDisposable
             return new PollResult(
                 Array.Empty<LobbyDto>(),
                 null,
-                "Нет доступа к серверу: " + (SteamAuth.LastError ?? "авторизация не выполнена"),
+                "No access to the server: " + (SteamAuth.LastError ?? "not authorized"),
                 null);
         }
 
         var lobbies = await _api.GetLobbiesAsync(Session, ct);
         if (lobbies.IsUnauthorized)
         {
-            Log?.Invoke("Токен истёк, повторяю вход…");
+            Log?.Invoke("Token expired, signing in again...");
             if (!await EnsureAuthenticatedAsync(force: true, ct))
             {
-                return new PollResult(Array.Empty<LobbyDto>(), null, "Сессия истекла, войти заново не удалось.", null);
+                return new PollResult(Array.Empty<LobbyDto>(), null, "Session expired and signing in again failed.", null);
             }
 
             lobbies = await _api.GetLobbiesAsync(Session, ct);
@@ -62,7 +62,7 @@ public sealed class TrackerService : IDisposable
             return new PollResult(
                 Array.Empty<LobbyDto>(),
                 null,
-                "Список лобби: " + (lobbies.Error ?? "неизвестная ошибка"),
+                "Lobby list: " + (lobbies.Error ?? "unknown error"),
                 null);
         }
 
@@ -71,7 +71,7 @@ public sealed class TrackerService : IDisposable
             lobbies.Data ?? Array.Empty<LobbyDto>(),
             queue.IsOk ? queue.Data : null,
             null,
-            queue.IsOk ? null : "Очередь: " + (queue.Error ?? "нет данных"));
+            queue.IsOk ? null : "Queue: " + (queue.Error ?? "no data"));
     }
 
     public async Task<bool> EnsureAuthenticatedAsync(bool force, CancellationToken ct)
@@ -103,8 +103,8 @@ public sealed class TrackerService : IDisposable
     }
 
     /// <summary>
-    /// Один раз за запуск сверяет сохранённую сессию с текущим Steam-аккаунтом.
-    /// Так приложение не «залипает» на чужом или старом аккаунте.
+    /// Once per launch, checks the saved session against the current Steam account.
+    /// This keeps the app from sticking to someone else's or an old account.
     /// </summary>
     private void SyncSteamIdentity()
     {
@@ -122,7 +122,7 @@ public sealed class TrackerService : IDisposable
         var id = steamId.ToString();
         if (!string.IsNullOrEmpty(Session.SteamId) && Session.SteamId != id)
         {
-            Log?.Invoke("В Steam другой аккаунт — сбрасываю сохранённую сессию.");
+            Log?.Invoke("Steam is on a different account - resetting the saved session.");
             Session.ClearTokens();
             Session.AccountId = null;
             Session.UserName = null;
@@ -133,7 +133,7 @@ public sealed class TrackerService : IDisposable
     }
 
     /// <summary>
-    /// Полный выход из текущей сессии и вход под тем Steam-аккаунтом, который запущен сейчас.
+    /// Fully signs out of the current session and signs in as the Steam account that is running now.
     /// </summary>
     public async Task<bool> SwitchAccountAsync(CancellationToken ct)
     {
@@ -151,10 +151,10 @@ public sealed class TrackerService : IDisposable
             _authGate.Release();
         }
 
-        // переподключаемся к Steam: аккаунт мог смениться в клиенте Steam
+        // reconnect to Steam: the account may have changed in the Steam client
         SteamAuth.Shutdown();
         _steamIdentityChecked = true;
-        Log?.Invoke("Сессия сброшена, вхожу заново.");
+        Log?.Invoke("Session reset, signing in again.");
         return await EnsureAuthenticatedAsync(force: true, ct);
     }
 
@@ -163,13 +163,13 @@ public sealed class TrackerService : IDisposable
         var result = await _api.RefreshSessionAsync(Session.RefreshToken!, ct);
         if (!result.IsOk || result.Data?.AccessToken == null)
         {
-            Log?.Invoke("Refresh-токен не принят, нужен вход через Steam.");
+            Log?.Invoke("Refresh token rejected, a Steam sign-in is needed.");
             Session.ClearTokens();
             return false;
         }
 
         ApplyTokens(result.Data);
-        Log?.Invoke("Сессия обновлена по refresh-токену.");
+        Log?.Invoke("Session renewed via refresh token.");
         return true;
     }
 
@@ -177,18 +177,18 @@ public sealed class TrackerService : IDisposable
     {
         if (!SteamAuth.Init())
         {
-            Log?.Invoke("Steam недоступен: " + SteamAuth.LastError);
+            Log?.Invoke("Steam unavailable: " + SteamAuth.LastError);
             return false;
         }
 
         try
         {
-            Log?.Invoke("Запрашиваю Steam-тикет…");
+            Log?.Invoke("Requesting a Steam ticket...");
             var ticket = await SteamAuth.GetWebApiTicketAsync(ct);
             var login = await _api.LoginSilentAsync(ticket, ct);
             if (!login.IsOk || login.Data?.AccessToken == null)
             {
-                Log?.Invoke("Вход не удался: " + (login.Error ?? "нет токена в ответе"));
+                Log?.Invoke("Sign-in failed: " + (login.Error ?? "no token in the response"));
                 return false;
             }
 
@@ -198,15 +198,15 @@ public sealed class TrackerService : IDisposable
                 Session.SteamId = steamId.ToString();
             }
 
-            // профиль перечитываем всегда: ник и accountId зависят от аккаунта
+            // always re-read the profile: nickname and accountId depend on the account
             Session.AccountId = null;
             Session.UserName = null;
             Session.Save();
-            Log?.Invoke("Вход выполнен.");
+            Log?.Invoke("Signed in.");
 
             if (!await EnsureProfileAsync(ct))
             {
-                Log?.Invoke("Не удалось загрузить профиль (aid/uid) — запросы к лобби могут не работать.");
+                Log?.Invoke("Could not load the profile (aid/uid) - lobby requests may not work.");
                 return false;
             }
 
@@ -218,7 +218,7 @@ public sealed class TrackerService : IDisposable
         }
         catch (Exception ex)
         {
-            Log?.Invoke("Вход через Steam не удался: " + ex.Message);
+            Log?.Invoke("Steam sign-in failed: " + ex.Message);
             return false;
         }
     }
@@ -233,7 +233,7 @@ public sealed class TrackerService : IDisposable
         var profile = await _api.GetProfileAsync(Session.AccessToken!, ct);
         if (!profile.IsOk || profile.Data == null)
         {
-            Log?.Invoke("Профиль: " + (profile.Error ?? "пустой ответ"));
+            Log?.Invoke("Profile: " + (profile.Error ?? "empty response"));
             return false;
         }
 

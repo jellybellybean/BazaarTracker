@@ -3,9 +3,9 @@ using Steamworks;
 namespace BazaarTracker;
 
 /// <summary>
-/// Получение Steam-тикета для веб-API (тот же способ, что использует сама игра:
-/// ISteamUser::GetAuthTicketForWebApi с AppID 1617400). Тикет нужен только для
-/// первичного входа; дальше приложение живёт на refresh-токене.
+/// Obtains a Steam ticket for the web API (the same way the game itself does:
+/// ISteamUser::GetAuthTicketForWebApi with AppID 1617400). The ticket is only needed for
+/// the initial sign-in; after that the app lives on the refresh token.
 /// </summary>
 public static class SteamAuth
 {
@@ -33,8 +33,8 @@ public static class SteamAuth
 
                 if (!SteamAPI.Init())
                 {
-                    LastError = "SteamAPI.Init() не смог подключиться к Steam. Проверьте, что Steam запущен, " +
-                                "и что на текущем Steam-аккаунте куплена The Bazaar (AppID 1617400).";
+                    LastError = "SteamAPI.Init() could not connect to Steam. Make sure Steam is running, " +
+                                "and that the current Steam account owns The Bazaar (AppID 1617400).";
                     return false;
                 }
 
@@ -50,7 +50,7 @@ public static class SteamAuth
             }
             catch (Exception ex)
             {
-                LastError = "Ошибка инициализации Steam: " + ex.Message;
+                LastError = "Steam initialization error: " + ex.Message;
                 return false;
             }
         }
@@ -66,7 +66,7 @@ public static class SteamAuth
             }
             catch
             {
-                // колбэки не должны ронять приложение
+                // callbacks must not crash the app
             }
 
             Thread.Sleep(100);
@@ -74,7 +74,7 @@ public static class SteamAuth
     }
 
     /// <summary>
-    /// SteamID64 текущего пользователя. Инициализирует Steamworks, если это ещё не сделано.
+    /// SteamID64 of the current user. Initializes Steamworks if that hasn't been done yet.
     /// </summary>
     public static bool TryGetSteamId(out ulong steamId)
     {
@@ -95,12 +95,12 @@ public static class SteamAuth
         }
     }
 
-    /// <summary>Возвращает тикет в hex-виде (нижний регистр), как его ждёт /api/auth/login/silent.</summary>
+    /// <summary>Returns the ticket as lowercase hex, as /api/auth/login/silent expects it.</summary>
     public static async Task<string> GetWebApiTicketAsync(CancellationToken cancellationToken)
     {
         if (!IsInitialized)
         {
-            throw new InvalidOperationException(LastError ?? "Steam не инициализирован.");
+            throw new InvalidOperationException(LastError ?? "Steam is not initialized.");
         }
 
         var tcs = new TaskCompletionSource<byte[]>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -109,7 +109,7 @@ public static class SteamAuth
             if (response.m_eResult != EResult.k_EResultOK)
             {
                 tcs.TrySetException(new InvalidOperationException(
-                    $"Steam вернул ошибку при получении тикета: {response.m_eResult}"));
+                    $"Steam returned an error while getting the ticket: {response.m_eResult}"));
                 return;
             }
 
@@ -125,7 +125,7 @@ public static class SteamAuth
         var handle = SteamUser.GetAuthTicketForWebApi(null);
         if (handle == HAuthTicket.Invalid)
         {
-            throw new InvalidOperationException("Steam не выдал тикет (HAuthTicket.Invalid).");
+            throw new InvalidOperationException("Steam did not issue a ticket (HAuthTicket.Invalid).");
         }
 
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
@@ -145,7 +145,7 @@ public static class SteamAuth
             }
             catch
             {
-                // тикет уже мог быть использован/отменён
+                // the ticket may already have been used/cancelled
             }
         }
 
@@ -168,7 +168,7 @@ public static class SteamAuth
             }
             catch
             {
-                // игнорируем
+                // ignore
             }
 
             IsInitialized = false;

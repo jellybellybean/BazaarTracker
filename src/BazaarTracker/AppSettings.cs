@@ -67,7 +67,7 @@ public sealed class AppSettings
         }
         catch
         {
-            // повреждённый файл настроек — начинаем с значений по умолчанию
+            // corrupted settings file: start from defaults
         }
 
         var fresh = new AppSettings { StartWithWindows = AutoStart.IsEnabled() };
@@ -86,7 +86,7 @@ public sealed class AppSettings
         }
         catch
         {
-            // не критично: настройки просто не сохранятся
+            // not critical: settings just won't be saved
         }
     }
 }

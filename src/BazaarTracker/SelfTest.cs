@@ -1,8 +1,8 @@
 namespace BazaarTracker;
 
 /// <summary>
-/// Диагностический режим: вход, один опрос, вывод в консоль.
-/// Запуск: BazaarTracker.exe --selftest  (или dotnet BazaarTracker.dll --selftest)
+/// Diagnostic mode: sign in, poll once, print to the console.
+/// Run: BazaarTracker.exe --selftest  (or dotnet BazaarTracker.dll --selftest)
 /// </summary>
 internal static class SelfTest
 {
@@ -14,7 +14,7 @@ internal static class SelfTest
         }
         catch
         {
-            // консоль может не поддерживать UTF-8
+            // the console may not support UTF-8
         }
 
         var settings = AppSettings.Load();
@@ -24,35 +24,35 @@ internal static class SelfTest
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
 
-        Console.WriteLine($"Сервер: {settings.TournamentBaseUrl}");
+        Console.WriteLine($"Server: {settings.TournamentBaseUrl}");
         if (!await service.EnsureAuthenticatedAsync(force: true, cts.Token))
         {
-            Console.WriteLine("РЕЗУЛЬТАТ: вход не выполнен.");
+            Console.WriteLine("RESULT: sign-in failed.");
             return 2;
         }
 
-        Console.WriteLine($"Вход выполнен: {session.UserName} ({session.AccountId})");
+        Console.WriteLine($"Signed in: {session.UserName} ({session.AccountId})");
 
         if (switchAccount)
         {
-            Console.WriteLine("Проверяю смену аккаунта (сброс сессии + повторный вход)…");
+            Console.WriteLine("Checking account switch (session reset + sign in again)...");
             if (!await service.SwitchAccountAsync(cts.Token))
             {
-                Console.WriteLine("РЕЗУЛЬТАТ: повторный вход не выполнен.");
+                Console.WriteLine("RESULT: second sign-in failed.");
                 return 4;
             }
 
-            Console.WriteLine($"Повторный вход выполнен: {session.UserName} ({session.AccountId})");
+            Console.WriteLine($"Signed in again: {session.UserName} ({session.AccountId})");
         }
 
         var result = await service.PollAsync(cts.Token);
-        Console.WriteLine($"Лобби: {result.Lobbies.Length}; очередь: " +
-                          (result.Queue is { } q ? $"{q.QueuedCount}/{q.MaxPlayers}" : "нет данных") +
-                          "; ошибка: " + (result.LobbyError ?? "нет"));
+        Console.WriteLine($"Lobbies: {result.Lobbies.Length}; queue: " +
+                          (result.Queue is { } q ? $"{q.QueuedCount}/{q.MaxPlayers}" : "no data") +
+                          "; error: " + (result.LobbyError ?? "none"));
         foreach (var lobby in result.Lobbies)
         {
             Console.WriteLine(
-                $"  «{lobby.DisplayName}» | хост {lobby.HostUsername} | {lobby.PlayersText} | код {lobby.Code} | до {lobby.ExpiresAt:HH:mm}");
+                $"  '{lobby.DisplayName}' | host {lobby.HostUsername} | {lobby.PlayersText} | code {lobby.Code} | until {lobby.ExpiresAt:HH:mm}");
         }
 
         return result.LobbyError == null ? 0 : 3;

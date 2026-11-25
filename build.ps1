@@ -6,8 +6,8 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $project = Join-Path $root 'src\BazaarTracker\BazaarTracker.csproj'
 
-# обычная сборка -> dist\ (нужен установленный .NET 10),
-# self-contained -> dist-portable\ (никуда ничего ставить не нужно)
+# regular build -> dist\ (requires .NET 10 installed),
+# self-contained -> dist-portable\ (nothing needs to be installed)
 $output = Join-Path $root $(if ($SelfContained) { 'dist-portable' } else { 'dist' })
 
 if (Test-Path $output) {
@@ -31,8 +31,8 @@ if ($SelfContained) {
 
 & dotnet @publishArgs
 if ($LASTEXITCODE -ne 0) {
-    throw "dotnet publish завершился с кодом $LASTEXITCODE"
+    throw "dotnet publish exited with code $LASTEXITCODE"
 }
 
 Write-Host ""
-Write-Host "Готово: $output\BazaarTracker.exe" -ForegroundColor Green
+Write-Host "Done: $output\BazaarTracker.exe" -ForegroundColor Green

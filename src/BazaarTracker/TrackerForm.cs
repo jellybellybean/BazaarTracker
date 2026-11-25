@@ -61,7 +61,7 @@ public sealed class TrackerForm : Form
     {
         SuspendLayout();
 
-        Text = "BazaarTracker — открытые лобби The Bazaar (PTR)";
+        Text = "BazaarTracker - open The Bazaar lobbies (PTR)";
         MinimumSize = new Size(680, 520);
         Size = new Size(780, 620);
         StartPosition = FormStartPosition.CenterScreen;
@@ -81,7 +81,7 @@ public sealed class TrackerForm : Form
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 118));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 46));
 
-        // ── баннер статуса ────────────────────────────────────────────────
+        // ── status banner ────────────────────────────────────────────────
         _bannerPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(14, 10, 14, 8) };
         _bannerTitle = new Label
         {
@@ -89,20 +89,20 @@ public sealed class TrackerForm : Form
             AutoSize = false,
             Height = 34,
             Font = new Font("Segoe UI", 15f, FontStyle.Bold),
-            Text = "Запуск…"
+            Text = "Starting..."
         };
         _bannerSub = new Label
         {
             Dock = DockStyle.Fill,
             AutoSize = false,
             Font = new Font("Segoe UI", 9f),
-            Text = "Подключаюсь к Steam и серверу The Bazaar."
+            Text = "Connecting to Steam and The Bazaar server."
         };
         _bannerPanel.Controls.Add(_bannerSub);
         _bannerPanel.Controls.Add(_bannerTitle);
         root.Controls.Add(_bannerPanel, 0, 0);
 
-        // ── список лобби ──────────────────────────────────────────────────
+        // ── lobby list ──────────────────────────────────────────────────
         _list = new ListView
         {
             Dock = DockStyle.Fill,
@@ -112,15 +112,15 @@ public sealed class TrackerForm : Form
             MultiSelect = false,
             BorderStyle = BorderStyle.FixedSingle
         };
-        _list.Columns.Add("Лобби", 255);
-        _list.Columns.Add("Хост", 140);
-        _list.Columns.Add("Игроки", 65, HorizontalAlignment.Center);
-        _list.Columns.Add("Код", 95, HorizontalAlignment.Center);
-        _list.Columns.Add("Осталось", 110);
+        _list.Columns.Add("Lobby", 255);
+        _list.Columns.Add("Host", 140);
+        _list.Columns.Add("Players", 65, HorizontalAlignment.Center);
+        _list.Columns.Add("Code", 95, HorizontalAlignment.Center);
+        _list.Columns.Add("Time left", 110);
         _list.DoubleClick += (_, _) => CopySelectedCode();
         root.Controls.Add(_list, 0, 1);
 
-        // ── журнал ────────────────────────────────────────────────────────
+        // ── log ────────────────────────────────────────────────────────
         _log = new RichTextBox
         {
             Dock = DockStyle.Fill,
@@ -134,7 +134,7 @@ public sealed class TrackerForm : Form
         };
         root.Controls.Add(_log, 0, 2);
 
-        // ── нижняя панель ─────────────────────────────────────────────────
+        // ── bottom bar ─────────────────────────────────────────────────
         var footer = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -162,9 +162,9 @@ public sealed class TrackerForm : Form
             WrapContents = false,
             Dock = DockStyle.Fill
         };
-        _refreshButton = MakeButton("Обновить (F5)", (_, _) => TriggerPollNow());
-        var settingsButton = MakeButton("Настройки", (_, _) => OpenSettings());
-        var trayButton = MakeButton("В трей", (_, _) => HideToTray());
+        _refreshButton = MakeButton("Refresh (F5)", (_, _) => TriggerPollNow());
+        var settingsButton = MakeButton("Settings", (_, _) => OpenSettings());
+        var trayButton = MakeButton("To tray", (_, _) => HideToTray());
         buttons.Controls.Add(_refreshButton);
         buttons.Controls.Add(settingsButton);
         buttons.Controls.Add(trayButton);
@@ -187,7 +187,7 @@ public sealed class TrackerForm : Form
         };
 
         BuildTrayIcon();
-        SetBanner("Запуск…", "Подключаюсь к Steam и серверу The Bazaar.", GrayBack, GrayText);
+        SetBanner("Starting...", "Connecting to Steam and The Bazaar server.", GrayBack, GrayText);
         ResumeLayout();
     }
 
@@ -207,11 +207,11 @@ public sealed class TrackerForm : Form
     private void BuildTrayIcon()
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Открыть", null, (_, _) => RestoreFromTray());
-        menu.Items.Add("Обновить", null, (_, _) => TriggerPollNow());
-        menu.Items.Add("Сменить аккаунт", null, (_, _) => SwitchAccount());
+        menu.Items.Add("Open", null, (_, _) => RestoreFromTray());
+        menu.Items.Add("Refresh", null, (_, _) => TriggerPollNow());
+        menu.Items.Add("Switch account", null, (_, _) => SwitchAccount());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Выход", null, (_, _) => ExitApp());
+        menu.Items.Add("Exit", null, (_, _) => ExitApp());
 
         _tray = new NotifyIcon
         {
@@ -227,10 +227,10 @@ public sealed class TrackerForm : Form
             _trayPhase = (_trayPhase + 0.08) % 1.0;
             RenderTrayIcon();
         };
-        SetTrayState(TrayState.Connecting, 0, "BazaarTracker — подключение…");
+        SetTrayState(TrayState.Connecting, 0, "BazaarTracker - connecting...");
     }
 
-    /// <summary>Меняет вид иконки и подсказку в трее; для «живых» состояний включает анимацию.</summary>
+    /// <summary>Updates the tray icon and tooltip; turns on animation for "live" states.</summary>
     private void SetTrayState(TrayState state, int count, string tooltip)
     {
         _trayState = state;
@@ -272,18 +272,18 @@ public sealed class TrackerForm : Form
             BeginInvoke(new Action(HideToTray));
         }
 
-        AppendLog($"Версия приложения {Application.ProductVersion}; сервер: {_settings.TournamentBaseUrl}");
+        AppendLog($"App version {Application.ProductVersion}; server: {_settings.TournamentBaseUrl}");
         StartTicker();
 
         if (!await _service.EnsureAuthenticatedAsync(force: false, _cts.Token))
         {
             SetBanner(
-                "Нет входа в аккаунт",
-                "Steam должен быть запущен, а на аккаунте — куплена The Bazaar. Повторю попытку автоматически.",
+                "Not signed in",
+                "Steam must be running and the account must own The Bazaar. Will retry automatically.",
                 RedBack,
                 RedText);
-            AppendLog("Авторизация не выполнена — попробую снова при следующем обновлении.");
-            SetTrayState(TrayState.Error, 0, "BazaarTracker — нет входа в аккаунт");
+            AppendLog("Authorization failed - will try again on the next refresh.");
+            SetTrayState(TrayState.Error, 0, "BazaarTracker - not signed in");
             _nextPollAt = DateTime.UtcNow.AddSeconds(_settings.ClampedInterval);
             return;
         }
@@ -345,9 +345,9 @@ public sealed class TrackerForm : Form
 
             if (result.LobbyError != null)
             {
-                SetBanner("Не удалось получить список лобби", result.LobbyError, RedBack, RedText);
-                AppendLog("Ошибка: " + result.LobbyError);
-                SetTrayState(TrayState.Error, 0, "BazaarTracker — нет связи с сервером");
+                SetBanner("Could not get the lobby list", result.LobbyError, RedBack, RedText);
+                AppendLog("Error: " + result.LobbyError);
+                SetTrayState(TrayState.Error, 0, "BazaarTracker - no connection to the server");
             }
             else
             {
@@ -356,12 +356,12 @@ public sealed class TrackerForm : Form
         }
         catch (OperationCanceledException)
         {
-            // приложение закрывается
+            // the app is closing
         }
         catch (Exception ex)
         {
-            SetBanner("Ошибка приложения", ex.Message, RedBack, RedText);
-            AppendLog("Исключение: " + ex);
+            SetBanner("Application error", ex.Message, RedBack, RedText);
+            AppendLog("Exception: " + ex);
         }
         finally
         {
@@ -412,21 +412,21 @@ public sealed class TrackerForm : Form
         if (lobbies.Length == 0)
         {
             var queueText = result.Queue is { } q && q.MaxPlayers > 0
-                ? $" В очереди на автоподбор: {q.QueuedCount} из {q.MaxPlayers}."
+                ? $" In matchmaking queue: {q.QueuedCount} of {q.MaxPlayers}."
                 : string.Empty;
             SetBanner(
-                "Открытых лобби нет",
-                "Публичных лобби сейчас никто не создал." + queueText + " Проверяю снова автоматически.",
+                "No open lobbies",
+                "Nobody has created a public lobby right now." + queueText + " Checking again automatically.",
                 AmberBack,
                 AmberText);
         }
         else
         {
             var fullCount = lobbies.Count(l => l.FreeSlots == 0);
-            var sub = $"{lobbies.Length} шт., свободных мест: {freeSlots}." +
-                      (fullCount > 0 ? $" Заполненных: {fullCount}." : string.Empty) +
-                      " Двойной клик — скопировать код лобби.";
-            SetBanner($"Открытых лобби: {lobbies.Length}", sub, GreenBack, GreenText);
+            var sub = $"{lobbies.Length} total, free slots: {freeSlots}." +
+                      (fullCount > 0 ? $" Full: {fullCount}." : string.Empty) +
+                      " Double-click to copy the lobby code.";
+            SetBanner($"Open lobbies: {lobbies.Length}", sub, GreenBack, GreenText);
         }
 
         var keys = new HashSet<string>(
@@ -442,8 +442,8 @@ public sealed class TrackerForm : Form
 
         var lobbyAlert = newLobbies.Length > 0 && (hadKnown || result.Lobbies.Length > 0);
 
-        // Очередь: сообщаем, когда игроков в ней стало больше, чем при прошлой проверке
-        // (в том числе при первой проверке, если очередь уже не пуста).
+        // Queue: notify when it has more players than at the previous check
+        // (including on the first check, if the queue is already non-empty).
         string? queueAlertText = null;
         if (result.Queue is { } q2)
         {
@@ -452,8 +452,8 @@ public sealed class TrackerForm : Form
                 q2.QueuedCount > (_lastQueueCount ?? 0))
             {
                 queueAlertText = q2.MaxPlayers > 0
-                    ? $"В очереди: {q2.QueuedCount} из {q2.MaxPlayers}"
-                    : $"В очереди: {q2.QueuedCount}";
+                    ? $"In queue: {q2.QueuedCount} of {q2.MaxPlayers}"
+                    : $"In queue: {q2.QueuedCount}";
             }
 
             _lastQueueCount = q2.QueuedCount;
@@ -469,14 +469,14 @@ public sealed class TrackerForm : Form
         }
 
         var queueInfo = result.Queue is { } queue && queue.MaxPlayers > 0
-            ? $" · очередь {queue.QueuedCount}/{queue.MaxPlayers}"
+            ? $" · queue {queue.QueuedCount}/{queue.MaxPlayers}"
             : string.Empty;
         var queueError = result.QueueError != null ? " · " + result.QueueError : string.Empty;
-        AppendLog($"Обновлено за {durationMs} мс: лобби {lobbies.Length}, свободных мест {freeSlots}{queueInfo}.{queueError}");
+        AppendLog($"Refreshed in {durationMs} ms: lobbies {lobbies.Length}, free slots {freeSlots}{queueInfo}.{queueError}");
 
         var openLobbies = lobbies.Count(l => l.FreeSlots > 0);
         var queued = result.Queue?.QueuedCount ?? 0;
-        var tooltip = $"BazaarTracker — лобби: {openLobbies}{queueInfo}";
+        var tooltip = $"BazaarTracker - lobbies: {openLobbies}{queueInfo}";
         if (openLobbies > 0)
         {
             SetTrayState(TrayState.Lobby, openLobbies, tooltip);
@@ -496,10 +496,10 @@ public sealed class TrackerForm : Form
         if (_settings.NotificationsEnabled)
         {
             ShowAlert(
-                "Кто-то в очереди",
+                "Someone is in the queue",
                 text,
                 TrayState.Queue,
-                WillLaunchGame ? "Клик — запустить игру" : "Клик — открыть окно",
+                WillLaunchGame ? "Click to launch the game" : "Click to open the window",
                 () =>
                 {
                     if (!LaunchGameIfNeeded())
@@ -516,7 +516,7 @@ public sealed class TrackerForm : Form
     }
 
     /// <summary>
-    /// Показывает оповещение: всплывающее окно у трея (по умолчанию) или обычный balloon Windows.
+    /// Shows an alert: a popup near the tray (default) or a regular Windows balloon.
     /// </summary>
     private void ShowAlert(string title, string body, TrayState kind, string? hint, Action? onClick)
     {
@@ -543,7 +543,7 @@ public sealed class TrackerForm : Form
         popup.ShowAtTray();
     }
 
-    /// <summary>Игру нужно запускать по клику: включено в настройках и она ещё не запущена.</summary>
+    /// <summary>The game should be launched on click: enabled in settings and not running yet.</summary>
     private bool WillLaunchGame => _settings.LaunchGameOnClick && !IsGameRunning();
 
     private static bool IsGameRunning()
@@ -565,7 +565,7 @@ public sealed class TrackerForm : Form
         }
     }
 
-    /// <summary>Запускает игру через Steam (ветка — та, что выбрана в Steam, у вас PTR). Возвращает true, если запуск начат.</summary>
+    /// <summary>Launches the game via Steam (the branch selected in Steam, e.g. PTR). Returns true if the launch started.</summary>
     private bool LaunchGameIfNeeded()
     {
         if (!WillLaunchGame)
@@ -575,9 +575,9 @@ public sealed class TrackerForm : Form
 
         try
         {
-            // Пока трекер жив (и держит SteamAPI с AppID игры), Steam считает, что игра уже запущена,
-            // и второй экземпляр не стартует. Поэтому запуск делает отдельный скрытый процесс:
-            // он ждёт, пока завершится трекер, и только потом открывает steam://rungameid.
+            // While the tracker is alive (and holds SteamAPI with the game's AppID), Steam thinks the game is already running,
+            // and a second instance won't start. So the launch is done by a separate hidden process:
+            // it waits for the tracker to exit and only then opens steam://rungameid.
             var pid = Environment.ProcessId;
             var url = "steam://rungameid/" + AppInfo.SteamAppIdText;
             var script = $"Wait-Process -Id {pid} -ErrorAction SilentlyContinue; " +
@@ -589,13 +589,13 @@ public sealed class TrackerForm : Form
                 UseShellExecute = false,
                 CreateNoWindow = true
             })?.Dispose();
-            AppendLog("Закрываю трекер и запускаю The Bazaar через Steam…");
+            AppendLog("Closing the tracker and launching The Bazaar via Steam...");
             ExitApp();
             return true;
         }
         catch (Exception ex)
         {
-            AppendLog("Не удалось запустить игру: " + ex.Message);
+            AppendLog("Could not launch the game: " + ex.Message);
             return false;
         }
     }
@@ -604,13 +604,13 @@ public sealed class TrackerForm : Form
     {
         try
         {
-            // copy: true — данные остаются в буфере и после закрытия трекера
+            // copy: true - the data stays on the clipboard after the tracker closes
             Clipboard.SetDataObject(code, true);
-            AppendLog($"Код {code} скопирован в буфер обмена.");
+            AppendLog($"Code {code} copied to the clipboard.");
         }
         catch
         {
-            // буфер обмена может быть занят другим приложением
+            // the clipboard may be locked by another application
         }
     }
 
@@ -619,7 +619,7 @@ public sealed class TrackerForm : Form
         var preview = lobbies.Length == 1
             ? $"{lobbies[0].DisplayName} — {lobbies[0].PlayersText}"
             : string.Join(", ", lobbies.Take(3).Select(l => l.DisplayName)) +
-              (lobbies.Length > 3 ? $" и ещё {lobbies.Length - 3}" : string.Empty);
+              (lobbies.Length > 3 ? $" and {lobbies.Length - 3} more" : string.Empty);
         if (queueText != null)
         {
             preview += ". " + queueText;
@@ -632,12 +632,12 @@ public sealed class TrackerForm : Form
             {
                 var code = withCode.DisplayCode;
                 ShowAlert(
-                    $"Открылось лобби: {lobbies.Length}",
+                    $"Lobbies opened: {lobbies.Length}",
                     preview,
                     TrayState.Lobby,
                     WillLaunchGame
-                        ? $"Клик — скопировать код {code} и запустить игру"
-                        : $"Клик — скопировать код {code}",
+                        ? $"Click to copy code {code} and launch the game"
+                        : $"Click to copy code {code}",
                     () =>
                     {
                         CopyCode(code);
@@ -647,10 +647,10 @@ public sealed class TrackerForm : Form
             else
             {
                 ShowAlert(
-                    $"Открылось лобби: {lobbies.Length}",
+                    $"Lobbies opened: {lobbies.Length}",
                     preview,
                     TrayState.Lobby,
-                    WillLaunchGame ? "Клик — запустить игру" : "Клик — открыть окно",
+                    WillLaunchGame ? "Click to launch the game" : "Click to open the window",
                     () =>
                     {
                         if (!LaunchGameIfNeeded())
@@ -688,12 +688,12 @@ public sealed class TrackerForm : Form
         try
         {
             Clipboard.SetText(code);
-            AppendLog($"Код {code} скопирован в буфер обмена.");
-            SetStatusSuffix($"код {code} скопирован");
+            AppendLog($"Code {code} copied to the clipboard.");
+            SetStatusSuffix($"code {code} copied");
         }
         catch
         {
-            // буфер обмена может быть занят другим приложением
+            // the clipboard may be locked by another application
         }
     }
 
@@ -707,20 +707,20 @@ public sealed class TrackerForm : Form
         var left = expires - DateTimeOffset.UtcNow;
         if (left <= TimeSpan.Zero)
         {
-            return "истекает";
+            return "expiring";
         }
 
         if (left < TimeSpan.FromMinutes(1))
         {
-            return "меньше минуты";
+            return "under a minute";
         }
 
         if (left < TimeSpan.FromHours(1))
         {
-            return $"{(int)left.TotalMinutes} мин";
+            return $"{(int)left.TotalMinutes} min";
         }
 
-        return $"{(int)left.TotalHours} ч {left.Minutes:00} м";
+        return $"{(int)left.TotalHours} h {left.Minutes:00} m";
     }
 
     private void SetBanner(string title, string subtitle, Color back, Color fore)
@@ -734,9 +734,9 @@ public sealed class TrackerForm : Form
 
     private void UpdateAccountStatus()
     {
-        var who = string.IsNullOrWhiteSpace(_service.Session.UserName) ? "аккаунт" : _service.Session.UserName;
-        Text = $"BazaarTracker — открытые лобби The Bazaar ({who})";
-        _tray.Text = $"BazaarTracker — лобби The Bazaar ({who})";
+        var who = string.IsNullOrWhiteSpace(_service.Session.UserName) ? "account" : _service.Session.UserName;
+        Text = $"BazaarTracker - open The Bazaar lobbies ({who})";
+        _tray.Text = $"BazaarTracker - The Bazaar lobbies ({who})";
     }
 
     private void UpdateStatusLine(int secondsLeft)
@@ -744,7 +744,7 @@ public sealed class TrackerForm : Form
         var who = string.IsNullOrWhiteSpace(_service.Session.UserName) ? "—" : _service.Session.UserName;
         var server = _settings.TournamentBaseUrl.Contains("ptr", StringComparison.OrdinalIgnoreCase) ? "PTR" : "prod";
         var next = Math.Max(0, secondsLeft);
-        _statusLabel.Text = $"{who} · {server} · проверка через {next} с";
+        _statusLabel.Text = $"{who} · {server} · next check in {next} s";
     }
 
     private void SetStatusSuffix(string suffix)
@@ -787,15 +787,15 @@ public sealed class TrackerForm : Form
         _settings.Save();
         _service.ApplySettings(_settings);
         SetTrayState(_trayState, _trayCount, _tray.Text);
-        AppendLog($"Настройки сохранены: интервал {_settings.ClampedInterval} с, уведомления " +
-                  $"{(_settings.NotificationsEnabled ? "вкл" : "выкл")}.");
+        AppendLog($"Settings saved: interval {_settings.ClampedInterval} s, notifications " +
+                  $"{(_settings.NotificationsEnabled ? "on" : "off")}.");
         _nextPollAt = DateTime.MinValue;
         TriggerPollNow();
     }
 
     private async void SwitchAccount()
     {
-        AppendLog("Смена аккаунта: закрываю сессию и вхожу заново через Steam.");
+        AppendLog("Switching account: closing the session and signing in again via Steam.");
         _knownLobbies.Clear();
         _lastQueueCount = null;
         try
@@ -803,21 +803,21 @@ public sealed class TrackerForm : Form
             if (await _service.SwitchAccountAsync(_cts.Token))
             {
                 UpdateAccountStatus();
-                AppendLog($"Вход выполнен: {_service.Session.UserName}.");
+                AppendLog($"Signed in: {_service.Session.UserName}.");
                 await PollAsync();
             }
             else
             {
                 SetBanner(
-                    "Не удалось войти",
-                    "Steam должен быть запущен, а на аккаунте — куплена The Bazaar. Нажмите «Обновить», чтобы повторить.",
+                    "Sign-in failed",
+                    "Steam must be running and the account must own The Bazaar. Press Refresh to retry.",
                     RedBack,
                     RedText);
             }
         }
         catch (OperationCanceledException)
         {
-            // приложение закрывается
+            // the app is closing
         }
     }
 
@@ -827,7 +827,7 @@ public sealed class TrackerForm : Form
         if (!_trayHintShown && _settings.NotificationsEnabled)
         {
             _trayHintShown = true;
-            _tray.ShowBalloonTip(5000, "BazaarTracker работает", "Приложение свёрнуто в трей и продолжает проверять лобби.", ToolTipIcon.Info);
+            _tray.ShowBalloonTip(5000, "BazaarTracker is running", "The app is minimized to the tray and keeps checking for lobbies.", ToolTipIcon.Info);
         }
     }
 

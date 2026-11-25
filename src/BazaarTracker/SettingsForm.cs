@@ -11,15 +11,15 @@ public sealed class SettingsForm : Form
         TextAlign = HorizontalAlignment.Right
     };
 
-    private readonly CheckBox _notify = new() { Text = "Показывать уведомление, когда появляется лобби", AutoSize = true };
-    private readonly CheckBox _popup = new() { Text = "Показывать всплывающее окно у трея (вместо системного уведомления)", AutoSize = true };
-    private readonly CheckBox _launchGame = new() { Text = "По клику на всплывающее окно запускать игру (если она не запущена)", AutoSize = true };
-    private readonly CheckBox _notifyQueue = new() { Text = "Показывать уведомление, когда в очереди появляются игроки", AutoSize = true };
-    private readonly CheckBox _sound = new() { Text = "Проигрывать звук вместе с уведомлением", AutoSize = true };
-    private readonly CheckBox _animateTray = new() { Text = "Анимировать иконку в трее, когда есть лобби или очередь", AutoSize = true };
-    private readonly CheckBox _tray = new() { Text = "Сворачивать в трей вместо закрытия", AutoSize = true };
-    private readonly CheckBox _autoStart = new() { Text = "Запускать при входе в Windows", AutoSize = true };
-    private readonly CheckBox _startMinimized = new() { Text = "Стартовать свёрнутым в трей", AutoSize = true };
+    private readonly CheckBox _notify = new() { Text = "Show a notification when a lobby appears", AutoSize = true };
+    private readonly CheckBox _popup = new() { Text = "Show a popup near the tray (instead of the system notification)", AutoSize = true };
+    private readonly CheckBox _launchGame = new() { Text = "Launch the game when the popup is clicked (if it isn't running)", AutoSize = true };
+    private readonly CheckBox _notifyQueue = new() { Text = "Show a notification when players appear in the queue", AutoSize = true };
+    private readonly CheckBox _sound = new() { Text = "Play a sound with the notification", AutoSize = true };
+    private readonly CheckBox _animateTray = new() { Text = "Animate the tray icon when there are lobbies or a queue", AutoSize = true };
+    private readonly CheckBox _tray = new() { Text = "Minimize to tray instead of closing", AutoSize = true };
+    private readonly CheckBox _autoStart = new() { Text = "Start with Windows", AutoSize = true };
+    private readonly CheckBox _startMinimized = new() { Text = "Start minimized to tray", AutoSize = true };
     private readonly TextBox _coreUrl = new() { Width = 472 };
     private readonly TextBox _tournamentUrl = new() { Width = 472 };
 
@@ -27,7 +27,7 @@ public sealed class SettingsForm : Form
     {
         Settings = settings;
 
-        Text = "Настройки BazaarTracker";
+        Text = "BazaarTracker settings";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -60,10 +60,10 @@ public sealed class SettingsForm : Form
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
 
-        // ── опрос ─────────────────────────────────────────────────────────
+        // ── polling ─────────────────────────────────────────────────────────
         var options = new GroupBox
         {
-            Text = "Опрос",
+            Text = "Polling",
             Dock = DockStyle.Top,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
@@ -79,9 +79,9 @@ public sealed class SettingsForm : Form
         };
 
         var intervalRow = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Margin = new Padding(0, 0, 0, 4) };
-        intervalRow.Controls.Add(new Label { Text = "Проверять каждые", AutoSize = true, Margin = new Padding(0, 6, 6, 0) });
+        intervalRow.Controls.Add(new Label { Text = "Check every", AutoSize = true, Margin = new Padding(0, 6, 6, 0) });
         intervalRow.Controls.Add(_interval);
-        intervalRow.Controls.Add(new Label { Text = "секунд (5–300)", AutoSize = true, Margin = new Padding(6, 6, 0, 0) });
+        intervalRow.Controls.Add(new Label { Text = "seconds (5–300)", AutoSize = true, Margin = new Padding(6, 6, 0, 0) });
 
         optionsLayout.Controls.Add(intervalRow, 0, 0);
         optionsLayout.Controls.Add(_notify, 0, 1);
@@ -95,10 +95,10 @@ public sealed class SettingsForm : Form
         optionsLayout.Controls.Add(_startMinimized, 0, 9);
         options.Controls.Add(optionsLayout);
 
-        // ── адреса API ────────────────────────────────────────────────────
+        // ── API addresses ────────────────────────────────────────────────────
         var endpoints = new GroupBox
         {
-            Text = "Сервер (менять, только если сменился адрес API)",
+            Text = "Server (change only if the API address changed)",
             Dock = DockStyle.Fill,
             Padding = new Padding(10)
         };
@@ -114,25 +114,25 @@ public sealed class SettingsForm : Form
         endpointsLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         endpointsLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-        endpointsLayout.Controls.Add(new Label { Text = "API аккаунта (temponet):", AutoSize = true }, 0, 0);
+        endpointsLayout.Controls.Add(new Label { Text = "Account API (temponet):", AutoSize = true }, 0, 0);
         endpointsLayout.Controls.Add(_coreUrl, 0, 1);
         endpointsLayout.Controls.Add(new Label
         {
-            Text = "API лобби (tournament):",
+            Text = "Lobby API (tournament):",
             AutoSize = true,
             Margin = new Padding(0, 10, 0, 0)
         }, 0, 2);
         endpointsLayout.Controls.Add(_tournamentUrl, 0, 3);
         endpointsLayout.Controls.Add(new Label
         {
-            Text = "По умолчанию — PTR-сервер The Bazaar.",
+            Text = "Default: The Bazaar PTR server.",
             AutoSize = true,
             ForeColor = Color.DimGray,
             Margin = new Padding(0, 10, 0, 0)
         }, 0, 4);
         endpoints.Controls.Add(endpointsLayout);
 
-        // ── кнопки ────────────────────────────────────────────────────────
+        // ── buttons ────────────────────────────────────────────────────────
         var buttons = new FlowLayoutPanel
         {
             Dock = DockStyle.Fill,
@@ -140,9 +140,9 @@ public sealed class SettingsForm : Form
             WrapContents = false,
             Padding = new Padding(0, 8, 0, 0)
         };
-        var cancel = new Button { Text = "Отмена", Size = new Size(96, 30), DialogResult = DialogResult.Cancel };
-        var ok = new Button { Text = "Сохранить", Size = new Size(110, 30) };
-        var reset = new Button { Text = "По умолчанию", Size = new Size(130, 30) };
+        var cancel = new Button { Text = "Cancel", Size = new Size(96, 30), DialogResult = DialogResult.Cancel };
+        var ok = new Button { Text = "Save", Size = new Size(110, 30) };
+        var reset = new Button { Text = "Defaults", Size = new Size(130, 30) };
         ok.Click += (_, _) => SaveAndClose();
         reset.Click += (_, _) =>
         {
@@ -170,13 +170,13 @@ public sealed class SettingsForm : Form
         var tournament = _tournamentUrl.Text.Trim().TrimEnd('/');
         if (!Uri.TryCreate(core, UriKind.Absolute, out var coreUri) || coreUri.Scheme != Uri.UriSchemeHttps)
         {
-            MessageBox.Show(this, "Адрес API аккаунта должен быть абсолютным https-адресом.", "BazaarTracker");
+            MessageBox.Show(this, "The account API address must be an absolute https URL.", "BazaarTracker");
             return;
         }
 
         if (!Uri.TryCreate(tournament, UriKind.Absolute, out var tournamentUri) || tournamentUri.Scheme != Uri.UriSchemeHttps)
         {
-            MessageBox.Show(this, "Адрес API лобби должен быть абсолютным https-адресом.", "BazaarTracker");
+            MessageBox.Show(this, "The lobby API address must be an absolute https URL.", "BazaarTracker");
             return;
         }
 
@@ -200,7 +200,7 @@ public sealed class SettingsForm : Form
         {
             MessageBox.Show(
                 this,
-                "Не удалось прописать автозапуск в реестре. Остальные настройки сохранены.",
+                "Could not register autostart in the registry. The other settings were saved.",
                 "BazaarTracker");
         }
 
