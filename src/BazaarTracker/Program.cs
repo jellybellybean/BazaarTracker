@@ -1,0 +1,33 @@
+using System.Threading;
+
+namespace BazaarTracker;
+
+internal static class Program
+{
+    [STAThread]
+    private static int Main(string[] args)
+    {
+        if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("--selftest-switch", StringComparer.OrdinalIgnoreCase))
+        {
+            var switchAccount = args.Contains("--selftest-switch", StringComparer.OrdinalIgnoreCase);
+            return SelfTest.RunAsync(switchAccount).GetAwaiter().GetResult();
+        }
+
+        using var mutex = new Mutex(true, @"Local\BazaarTracker.SingleInstance", out var isFirstInstance);
+        if (!isFirstInstance)
+        {
+            MessageBox.Show(
+                "BazaarTracker уже запущен — окно можно открыть из значка в трее.",
+                "BazaarTracker",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return 0;
+        }
+
+        ApplicationConfiguration.Initialize();
+        var startHidden = args.Contains("--tray", StringComparer.OrdinalIgnoreCase);
+        Application.Run(new TrackerForm(startHidden));
+        return 0;
+    }
+}

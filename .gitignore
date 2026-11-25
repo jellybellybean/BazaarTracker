@@ -1,0 +1,10 @@
+bin/
+obj/
+dist/
+dist-portable/
+shot*.png
+.vs/
+*.zip
+vendor/
+.claude/
+BazaarTracker-portable/
