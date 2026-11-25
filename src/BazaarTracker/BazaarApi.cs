@@ -18,11 +18,18 @@ public sealed class LoginResponseDto
     public DateTimeOffset? AccessTokenExpiresAt { get; set; }
 }
 
-public sealed record HttpResult<T>(int StatusCode, T? Data, string? Error)
+public sealed record HttpResult<T>(int StatusCode, T? Data, string? Error, TimeSpan? RetryAfter = null)
 {
     public bool IsOk => StatusCode is >= 200 and < 300 && Error == null;
 
-    public bool IsUnauthorized => StatusCode is 401 or 403;
+    /// <summary>HTTP 401: the access token is missing, expired or rejected.</summary>
+    public bool IsUnauthorized => StatusCode == 401;
+
+    /// <summary>HTTP 403: the server refuses this client. Retrying or re-signing in will not help.</summary>
+    public bool IsForbidden => StatusCode == 403;
+
+    /// <summary>Network error, timeout, 408, 429 or 5xx: a problem on the way or on the server side.</summary>
+    public bool IsTransient => StatusCode is 0 or 408 or 429 or >= 500;
 }
 
 /// <summary>
@@ -133,7 +140,7 @@ public sealed class BazaarApi : IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                return new HttpResult<T>(status, default, FormatError(response.StatusCode, body));
+                return new HttpResult<T>(status, default, FormatError(response.StatusCode, body), ParseRetryAfter(response));
             }
 
             if (string.IsNullOrWhiteSpace(body) || body == "null")
@@ -152,10 +159,28 @@ public sealed class BazaarApi : IDisposable
         {
             return new HttpResult<T>(0, default, "Server did not respond within 20 seconds.");
         }
+        catch (JsonException ex)
+        {
+            // a garbled or unexpected body is a server-side problem: report it, never crash or drop the tokens
+            return new HttpResult<T>(502, default, "Unexpected response from the server: " + ex.Message);
+        }
         catch (HttpRequestException ex)
         {
             return new HttpResult<T>(0, default, "Network: " + ex.Message);
         }
+    }
+
+    /// <summary>Reads the Retry-After header (delta-seconds or an HTTP date).</summary>
+    private static TimeSpan? ParseRetryAfter(HttpResponseMessage response)
+    {
+        var header = response.Headers.RetryAfter;
+        if (header == null)
+        {
+            return null;
+        }
+
+        var delay = header.Delta ?? (header.Date.HasValue ? header.Date.Value - DateTimeOffset.UtcNow : (TimeSpan?)null);
+        return delay is { } d && d > TimeSpan.Zero ? d : null;
     }
 
     private static string FormatError(HttpStatusCode status, string body)

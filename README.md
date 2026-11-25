@@ -101,8 +101,23 @@ Flow:
 2. `POST /api/auth/login/silent` with the ticket → JWT (`accessToken`) and `refreshToken`.
 3. `GET /api/PlayerProfiles/me` → `accountId` and nickname (needed for the `aid`/`uid` headers).
 4. Every N seconds: `GET /lobbies?limit=50` and `GET /queue` with an `Authorization: Bearer …` header.
-5. When the access token expires, it is renewed via `POST /api/auth/refreshtokens`;
-   if that fails, the app gets a new Steam ticket.
+5. When the access token expires or the server answers `401`, it is renewed via
+   `POST /api/auth/refreshtokens`. A new Steam sign-in happens only if there is no refresh token
+   or the server explicitly rejects it (HTTP `400`/`401`).
+
+### Being gentle with the backend
+
+- **Refresh token first.** A `401` never triggers a Steam sign-in directly; the refresh token is tried first.
+- **Tokens are never dropped on hiccups.** Timeouts, network errors, `429` and `5xx` keep the saved tokens
+  and simply retry later. Only `400`/`401` from the refresh endpoint discards the refresh token.
+- **`403` stops everything.** No refresh, no re-sign-in, no automatic retries: the error is shown and
+  polling is paused until you press Refresh.
+- **Exponential backoff with jitter** after every failed poll: the delay doubles (check interval × 2, 4, 8, …),
+  is randomized within its upper half, never goes below the normal interval and is capped at 5 minutes.
+  A success returns to the normal interval. A `Retry-After` header (seconds or HTTP date) is honoured
+  and is never undercut (limited to 1 hour).
+- A problem on your own computer (e.g. Steam is not running) does not count as a server failure and is
+  retried at the normal interval.
 
 The account password is never asked for or stored: `%APPDATA%\BazaarTracker\session.json`
 holds only the tokens issued by the server, and `settings.json` holds the polling interval,
@@ -136,6 +151,15 @@ Checks sign-in, makes one lobby request and prints the result to the console. Ha
 ```
 
 The same, plus an account switch check (session reset and sign-in through Steam again).
+
+```powershell
+.\BazaarTracker.exe --selftest-http
+.\BazaarTracker.exe --selftest-backoff
+```
+
+Offline checks that need neither Steam nor the real server: the first runs the sign-in / retry rules
+(401, 403, 429, 5xx, timeouts, `Retry-After`) against a fake local HTTP server, the second checks the
+backoff delays. They use a temporary data folder and never touch your saved session.
 
 ## Layout
 

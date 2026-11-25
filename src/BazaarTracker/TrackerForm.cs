@@ -41,6 +41,8 @@ public sealed class TrackerForm : Form
     private int? _lastQueueCount;
     private DateTime _nextPollAt = DateTime.MinValue;
     private bool _polling;
+    private bool _pollingStopped;
+    private readonly PollBackoff _backoff = new();
     private bool _exiting;
     private bool _trayHintShown;
 
@@ -275,20 +277,7 @@ public sealed class TrackerForm : Form
         AppendLog($"App version {Application.ProductVersion}; server: {_settings.TournamentBaseUrl}");
         StartTicker();
 
-        if (!await _service.EnsureAuthenticatedAsync(force: false, _cts.Token))
-        {
-            SetBanner(
-                "Not signed in",
-                "Steam must be running and the account must own The Bazaar. Will retry automatically.",
-                RedBack,
-                RedText);
-            AppendLog("Authorization failed - will try again on the next refresh.");
-            SetTrayState(TrayState.Error, 0, "BazaarTracker - not signed in");
-            _nextPollAt = DateTime.UtcNow.AddSeconds(_settings.ClampedInterval);
-            return;
-        }
-
-        UpdateAccountStatus();
+        // PollAsync signs in first if needed, and reports a sign-in problem like any other failure
         await PollAsync();
     }
 
@@ -301,7 +290,7 @@ public sealed class TrackerForm : Form
 
     private async void OnTick(object? sender, EventArgs e)
     {
-        if (_polling)
+        if (_polling || _pollingStopped)
         {
             return;
         }
@@ -324,6 +313,8 @@ public sealed class TrackerForm : Form
             return;
         }
 
+        // a manual refresh also resumes polling after it was stopped by an HTTP 403
+        _pollingStopped = false;
         _nextPollAt = DateTime.MinValue;
         _ = PollAsync();
     }
@@ -338,20 +329,56 @@ public sealed class TrackerForm : Form
         _polling = true;
         _refreshButton.Enabled = false;
         var started = DateTime.Now;
+        var interval = TimeSpan.FromSeconds(_settings.ClampedInterval);
+        var delay = interval;
         try
         {
             var result = await _service.PollAsync(_cts.Token);
             var duration = (int)(DateTime.Now - started).TotalMilliseconds;
 
-            if (result.LobbyError != null)
+            // Only network/server trouble grows the delay; a local problem (Steam not running) does not.
+            delay = _backoff.NextDelay(interval, result.Failure == PollFailure.Backoff, result.RetryAfter);
+
+            if (result.StopPolling)
             {
-                SetBanner("Could not get the lobby list", result.LobbyError, RedBack, RedText);
+                _pollingStopped = true;
+                var reason = result.LobbyError ?? result.QueueError ?? "The server refused the request (HTTP 403).";
+                SetBanner(
+                    "The server refused the request",
+                    reason + " Automatic checks are stopped; press Refresh to try again.",
+                    RedBack,
+                    RedText);
+                AppendLog("Error: " + reason + " Automatic checks stopped.");
+                SetTrayState(TrayState.Error, 0, "BazaarTracker - request refused by the server (stopped)");
+            }
+            else if (result.LobbyError != null && result.Failure == PollFailure.Local)
+            {
+                SetBanner(
+                    "Not signed in",
+                    "Steam must be running and the account must own The Bazaar. Will retry automatically.",
+                    RedBack,
+                    RedText);
                 AppendLog("Error: " + result.LobbyError);
+                SetTrayState(TrayState.Error, 0, "BazaarTracker - not signed in");
+            }
+            else if (result.LobbyError != null)
+            {
+                SetBanner(
+                    "Could not get the lobby list",
+                    result.LobbyError + $" Retrying in {(int)Math.Ceiling(delay.TotalSeconds)} s.",
+                    RedBack,
+                    RedText);
+                AppendLog($"Error: {result.LobbyError} (failure #{_backoff.Failures}, next try in {(int)Math.Ceiling(delay.TotalSeconds)} s)");
                 SetTrayState(TrayState.Error, 0, "BazaarTracker - no connection to the server");
             }
             else
             {
+                UpdateAccountStatus();
                 ApplyResult(result, duration);
+                if (result.RetryAfter is not null)
+                {
+                    AppendLog($"The server asked to slow down; next check in {(int)Math.Ceiling(delay.TotalSeconds)} s.");
+                }
             }
         }
         catch (OperationCanceledException)
@@ -360,6 +387,7 @@ public sealed class TrackerForm : Form
         }
         catch (Exception ex)
         {
+            delay = _backoff.NextDelay(interval, failed: true);
             SetBanner("Application error", ex.Message, RedBack, RedText);
             AppendLog("Exception: " + ex);
         }
@@ -369,8 +397,15 @@ public sealed class TrackerForm : Form
             if (!_cts.IsCancellationRequested && !IsDisposed)
             {
                 _refreshButton.Enabled = true;
-                _nextPollAt = DateTime.UtcNow.AddSeconds(_settings.ClampedInterval);
-                UpdateStatusLine(_settings.ClampedInterval);
+                if (_pollingStopped)
+                {
+                    UpdateStatusLinePaused();
+                }
+                else
+                {
+                    _nextPollAt = DateTime.UtcNow + delay;
+                    UpdateStatusLine((int)Math.Ceiling(delay.TotalSeconds));
+                }
             }
         }
     }
@@ -747,6 +782,12 @@ public sealed class TrackerForm : Form
         _statusLabel.Text = $"{who} · {server} · next check in {next} s";
     }
 
+    private void UpdateStatusLinePaused()
+    {
+        var who = string.IsNullOrWhiteSpace(_service.Session.UserName) ? "—" : _service.Session.UserName;
+        _statusLabel.Text = $"{who} · automatic checks stopped - press Refresh to try again";
+    }
+
     private void SetStatusSuffix(string suffix)
     {
         _statusLabel.Text += " · " + suffix;
@@ -796,6 +837,8 @@ public sealed class TrackerForm : Form
     private async void SwitchAccount()
     {
         AppendLog("Switching account: closing the session and signing in again via Steam.");
+        _pollingStopped = false;
+        _backoff.Reset();
         _knownLobbies.Clear();
         _lastQueueCount = null;
         try

@@ -15,9 +15,12 @@ internal static class AppInfo
     {
         get
         {
-            var dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "BazaarTracker");
+            // BAZAARTRACKER_DATA_DIR is only used by the offline self-tests so they never touch the real session
+            var dir = Environment.GetEnvironmentVariable("BAZAARTRACKER_DATA_DIR") is { Length: > 0 } custom
+                ? custom
+                : Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "BazaarTracker");
             Directory.CreateDirectory(dir);
             return dir;
         }

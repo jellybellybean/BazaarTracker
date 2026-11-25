@@ -7,6 +7,16 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Contains("--selftest-backoff", StringComparer.OrdinalIgnoreCase))
+        {
+            return SelfTest.RunBackoffChecks();
+        }
+
+        if (args.Contains("--selftest-http", StringComparer.OrdinalIgnoreCase))
+        {
+            return HttpSelfTest.RunAsync().GetAwaiter().GetResult();
+        }
+
         if (args.Contains("--selftest", StringComparer.OrdinalIgnoreCase) ||
             args.Contains("--selftest-switch", StringComparer.OrdinalIgnoreCase))
         {
